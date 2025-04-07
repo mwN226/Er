@@ -1,0 +1,218 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SafeWork JHA Creator</title>
+  <style>
+    :root {
+      --bg: #f4f4f4;
+      --fg: #002d56;
+      --card: #ffffff;
+      --text: #000000;
+    }
+    body.dark {
+      --bg: #121212;
+      --fg: #e0e0e0;
+      --card: #1e1e1e;
+      --text: #ffffff;
+    }
+    body {
+      font-family: 'Segoe UI', Tahoma, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      background-color: var(--fg);
+      color: white;
+      padding: 20px;
+      text-align: center;
+    }
+    main {
+      max-width: 900px;
+      margin: 20px auto;
+      background: var(--card);
+      padding: 20px;
+      border-radius: 8px;
+    }
+    .step {
+      border: 1px solid #ccc;
+      padding: 15px;
+      margin-bottom: 20px;
+      border-radius: 6px;
+      background: #eef2fa;
+    }
+    label {
+      font-weight: bold;
+      display: block;
+      margin-top: 10px;
+    }
+    input, textarea, select {
+      width: 100%;
+      padding: 10px;
+      font-size: 16px;
+      margin-top: 5px;
+      margin-bottom: 10px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      box-sizing: border-box;
+    }
+    select[multiple] {
+      height: 90px;
+    }
+    button {
+      background: #0055a4;
+      color: white;
+      padding: 10px 15px;
+      font-size: 16px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    button:hover {
+      background: #003f7d;
+    }
+    .btn-group {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 20px;
+    }
+    .output {
+      background: var(--card);
+      border-radius: 6px;
+      padding: 15px;
+      margin-top: 30px;
+      border: 1px solid #ccc;
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>SafeWork JHA Creator</h1>
+    <button onclick="toggleDarkMode()">Toggle Dark Mode</button>
+  </header>
+  <main>
+    <div id="stepsContainer"></div>
+    <div class="btn-group">
+      <button onclick="addStep()">+ Add Job Step</button>
+      <button onclick="generateOutput()">Generate JHA</button>
+      <button onclick="downloadPDF()">Download as PDF</button>
+    </div>
+    <div id="output" class="output">Your structured JHA will appear here...</div>
+  </main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+let stepCount = 0;
+
+function toggleDarkMode() {
+  document.body.classList.toggle('dark');
+}
+
+function addStep() {
+  stepCount++;
+  const container = document.getElementById("stepsContainer");
+  const div = document.createElement("div");
+  div.className = "step";
+  div.innerHTML = `
+    <h3>Job Step ${stepCount}</h3>
+    <label>Task:</label>
+    <input type="text" name="task">
+    <label>Tools:</label>
+    <input type="text" name="tools">
+    <label>Hazards:</label>
+    <select name="hazards" multiple>
+      <option>Slips</option>
+      <option>Trips</option>
+      <option>Falls</option>
+      <option>Pinch Points</option>
+      <option>Manual Handling</option>
+      <option>Line of Fire</option>
+      <option>Isolation Error</option>
+      <option>Hot Weather</option>
+      <option>Stored Energy</option>
+      <option>Lifting Operations</option>
+      <option>Dust Inhalation</option>
+      <option>Mobile Plant Interaction</option>
+      <option>Sharp Edges</option>
+      <option>Noise</option>
+      <option>UV Exposure</option>
+      <option>Confined Spaces</option>
+      <option>Electrical Hazards</option>
+    </select>
+    <label>Controls:</label>
+    <select name="controls" multiple>
+      <option>Use PPE</option>
+      <option>Use fall protection</option>
+      <option>Spotter present</option>
+      <option>Follow permit</option>
+      <option>Ask questions if unsure</option>
+      <option>Verify asset ID</option>
+      <option>Lift with legs</option>
+      <option>Positive communication</option>
+      <option>Correct tooling</option>
+      <option>Understand task before starting</option>
+      <option>Use spotter</option>
+      <option>Maintain exclusion zone</option>
+      <option>Use mechanical aids</option>
+      <option>Pre-start checks</option>
+      <option>Stay hydrated</option>
+      <option>Follow JHA process</option>
+      <option>Use barricades</option>
+    </select>
+    <label>Comments:</label>
+    <textarea name="comments" rows="2"></textarea>
+  `;
+  container.appendChild(div);
+}
+
+function generateOutput() {
+  const steps = document.querySelectorAll(".step");
+  let output = "";
+  steps.forEach((step, index) => {
+    const task = step.querySelector('[name="task"]').value;
+    const tools = step.querySelector('[name="tools"]').value;
+    const hazards = Array.from(step.querySelector('[name="hazards"]').selectedOptions).map(o => o.value);
+    const controls = Array.from(step.querySelector('[name="controls"]').selectedOptions).map(o => o.value);
+    const comments = step.querySelector('[name="comments"]').value;
+
+    output += `Job Step ${index + 1}:
+`;
+    output += `Task: ${task}
+Tools: ${tools}
+`;
+    output += `Hazards/Risks:
+${hazards.map(h => "- " + h).join("\n")}
+`;
+    output += `Controls:
+${controls.map(c => "- " + c).join("\n")}
+`;
+    if (comments) output += `Notes: ${comments}
+`;
+    output += "\n";
+  });
+  document.getElementById("output").textContent = output.trim();
+}
+
+function downloadPDF() {
+  generateOutput();
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  const text = document.getElementById("output").textContent;
+  doc.setFontSize(10);
+  doc.text(text, 10, 10);
+  doc.save("jha.pdf");
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  addStep(); // Add initial step
+});
+</script>
+</body>
+</html>
